@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Сообщества{% endblock %}
+{% block header %}Сообщества{% endblock %}
+{% block content %}
+
+<div class="list-group">
+    {% for group in groups %}
+        <a class="list-group-item list-group-item-action" href="{{ group.slug }}">{{ group.title }}</a>
+        {% endfor %}
+        <a class="list-group-item list-group-item-action" href="{% url 'index' %}">Посмотртеть всё</a>
+</div>
+{% endblock %} 
