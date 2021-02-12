@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.contrib.auth import get_user, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core import paginator
@@ -22,9 +24,8 @@ def get_profile_data_dict(username, add_context=None):
     # user = get_user_model().objects.get(username=username)
     user = get_object_or_404(get_user_model(), username=username)
     return {
-            "username": username,
+            "username": user,
             "posts_count": Post.objects.filter(author=user).count(),
-            "full_name": user.get_full_name()
            }
 
 
@@ -58,12 +59,14 @@ def profile(request, username):
     posts = user.posts.all()
     page = get_page(request, posts)
     context.update({"page": page})
+    
     # обязательно отдаем username и full_name, на случай если нет постов
     return render(request, "profile.html", context)
 
 
 def view_post(request, username, post_id):
     """ Посмотреть пост под номером post_id """
+    print("view_post")
     context = {"post": Post.objects.get(id=post_id), "post_id": post_id}
     context.update(get_profile_data_dict(username))
     return render(request, "post.html", context)
@@ -72,7 +75,12 @@ def view_post(request, username, post_id):
 @login_required
 def new_post(request, username=None, post_id=None):
     """ Создать/редактировать новый пост """
+    # !!! TODO сделать названия кнопок другие и страницы для едит и нью
     instance = None
+    # не тот пользователь - уходим
+    if request.user.username != username:
+        return redirect("post", username, post_id)
+
     if username and post_id:  # Если установлены - значит редактирование
         user = get_object_or_404(get_user_model(), username=username)
         instance = get_object_or_404(Post, author=user, id=post_id)
@@ -80,10 +88,16 @@ def new_post(request, username=None, post_id=None):
     form = PostForm(request.POST or None, instance=instance)
 
     if request.GET or not form.is_valid():
-        return render(request, "new_post.html", {"form": form})
+        return render(request, "new_post.html",
+                      {"form": form,
+                       "post": instance})  # тест просит, но для чего не ясно
 
     post = form.save(commit=False)
+    post.pub_date = dt.datetime.now()
     post.author = request.user
     post.save()
+    # если доши сюда и пользователь совпадает, значит вернемся к посту
+    if request.user.username == username:
+        return redirect("post", username, post_id)
 
     return redirect(reverse_lazy("index"))

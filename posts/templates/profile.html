@@ -10,7 +10,7 @@
                 <div class="card-body">
                     <div class="h2">
                         <!-- Имя автора -->
-                        {{ full_name }}
+                        {{ username.get_full_name }}
                     </div>
                     <div class="h3 text-muted">
                         <!-- username автора -->
@@ -48,13 +48,9 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group ">
                             <!-- Ссылка на страницу записи в атрибуте href-->
-                            <a class="btn btn-sm text-muted" href="{% url 'post' post.author post.id %}/" role="button">Добавить комментарий</a>
+                            <a class="btn btn-sm text-muted" href="{% url 'post' post.author post.id %}" role="button">Добавить комментарий</a>
                             <!-- Ссылка на редактирование, показывается только автору записи -->
-                            {% if user.is_authenticated and user.username == post.author.username %}
                             <a class="btn btn-sm text-normal" href="{% url 'edit_post' post.author post.id %}" role="button">Редактировать</a>
-                            {% else %}
-                            <button class="btn btn-sm text-muted" href="" role="button" disabled>Редактировать</button>
-                            {% endif %}
                         </div>
                         <!-- Дата публикации  -->
                         <small class="text-muted">{{ post.pub_date }}</small>

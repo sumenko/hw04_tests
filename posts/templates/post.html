@@ -10,11 +10,11 @@
                 <div class="card-body">
                     <div class="h2">
                         <!-- Имя автора -->
-                        {{ full_name }}
+                        {{ username.get_full_name }}
                     </div>
                     <div class="h3 text-muted">
                         <!-- username автора -->
-                        {{ username }}
+                        @{{ username }}
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">
