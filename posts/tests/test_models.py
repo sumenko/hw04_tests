@@ -1,5 +1,3 @@
-from unittest import skip
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -47,9 +45,9 @@ class TestGroupModels(TestCase):
         cls.group = Group.objects.get(id=1)
         # TODO: проверим сообщество с длинным названием
         Group.objects.create(
-            title="А"*201,
-            slug="q"*101,
-            description="f"*101
+            title="А" * 200,
+            slug="q" * 100,
+            description="f" * 100
         )
         cls.long_group = Group.objects.get(id=2)
 
@@ -83,4 +81,3 @@ class TestGroupModels(TestCase):
     def test_group_str_correct(self):
         self.assertEqual(TestGroupModels.group.__str__(),
                          "Авиа")
-

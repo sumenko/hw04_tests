@@ -21,8 +21,8 @@ def get_profile_data_dict(username, add_context=None):
     """ Возвращает словарь с данными профиля пользователя """
     user = get_object_or_404(get_user_model(), username=username)
     return {
-            "username": user,
-            "posts_count": Post.objects.filter(author=user).count(),
+           "username": user,
+           "posts_count": Post.objects.filter(author=user).count()
            }
 
 
@@ -30,10 +30,8 @@ def index(request):
     """ Вывод последних 10 постов из базы """
     post_list = Post.objects.all()
     page, paginator = get_page(request, post_list)
-    return render(request,
-                  "index.html",
-                  {"page": page,
-                   "paginator": paginator})
+    context = {"page": page, "paginator": paginator}
+    return render(request, "index.html", context)
 
 
 def group_posts(request, slug=None):
@@ -47,7 +45,8 @@ def group_posts(request, slug=None):
                   {"group": group,
                    "page": page,
                    # передаем paginator в контекст чтобы пройти тест
-                   "paginator": paginator})
+                   "paginator": paginator}
+           )
 
 
 def show_groups(request):
