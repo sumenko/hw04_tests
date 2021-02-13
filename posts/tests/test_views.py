@@ -177,13 +177,3 @@ class StaticURLTests(TestCase):
         self.assertEqual(len(response.context.get("page").object_list),
                          StaticURLTests.posts_per_page,
                          "Неверное количество постов на странице")
-
-    def test_about_available(self):
-        response_author = self.guest_client.get(reverse("about:author"))
-        response_tech = self.guest_client.get(reverse("about:tech"))
-
-        self.assertEqual(response_author.status_code, 200,
-                         "about/author недостоупно гостевому пользователю")
-
-        self.assertEqual(response_tech.status_code, 200,
-                         "about/tech недостоупно гостевому пользователю")

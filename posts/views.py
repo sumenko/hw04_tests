@@ -1,10 +1,9 @@
-import datetime as dt
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 
 from .forms import PostForm
 from .models import Group, Post
@@ -102,7 +101,8 @@ def new_post(request, username=None, post_id=None):
                        "post": instance})  # тест просит, но для чего не ясно
 
     post = form.save(commit=False)
-    post.pub_date = dt.datetime.now()
+    # post.pub_date = dt.datetime.now()
+    post.pub_date = timezone.now()
     post.author = request.user
     post.save()
     # если доши сюда и пользователь совпадает, значит вернемся к посту
