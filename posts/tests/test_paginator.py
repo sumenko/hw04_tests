@@ -22,11 +22,11 @@ class TestPaginator(TestCase):
         self.client = Client()
 
     def test_first_page_contains_ten_records(self):
-        response = self.client.get(reverse("index"))
+        response = self.client.get(reverse("posts:index"))
 
         self.assertEqual(len(response.context.get("page").object_list), 10)
 
     def test_second_page_contains_three_records(self):
-        response = self.client.get(reverse("index") + "/?page=2")
+        response = self.client.get(reverse("posts:index") + "/?page=2")
 
         self.assertEqual(len(response.context.get("page").object_list), 3)

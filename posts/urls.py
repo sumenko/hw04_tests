@@ -2,6 +2,8 @@ from django.urls import path
 
 from . import views
 
+app_name = "posts"
+
 # у нас два варианта: вывод всех постов или по сообществу
 urlpatterns = [
     path("", views.index, name="index"),

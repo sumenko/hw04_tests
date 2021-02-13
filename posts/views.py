@@ -88,7 +88,7 @@ def new_post(request, username=None, post_id=None):
     new_post = True  # поумолчанию - создать если ниже не сказано иное
     # не тот пользователь - уходим
     if request.user.username != username and post_id:
-        return redirect("post", username, post_id)
+        return redirect("posts:post", username, post_id)
 
     if username and post_id:  # Если установлены - значит редактирование
         user = get_object_or_404(get_user_model(), username=username)
@@ -109,6 +109,6 @@ def new_post(request, username=None, post_id=None):
     post.save()
     # если доши сюда и пользователь совпадает, значит вернемся к посту
     if request.user.username == username:
-        return redirect("post", username, post_id)
+        return redirect("posts:post", username, post_id)
 
-    return redirect(reverse_lazy("index"))
+    return redirect(reverse_lazy("posts:index"))

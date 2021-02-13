@@ -50,9 +50,11 @@ class StaticURLTests(TestCase):
 
         # соберем что выдают страницы для разных сообществ для проверки ниже
         test_urls = [
-            ("index", reverse("index")),
-            ("aviators", reverse("group_slug", kwargs={"slug": "aviators"})),
-            ("group-two", reverse("group_slug", kwargs={"slug": "group-two"})),
+            ("posts:index", reverse("posts:index")),
+            ("aviators", reverse("posts:group_slug",
+                                 kwargs={"slug": "aviators"})),
+            ("group-two", reverse("posts:group_slug",
+                                  kwargs={"slug": "group-two"})),
         ]
         self.contexts = {}
 
@@ -63,10 +65,11 @@ class StaticURLTests(TestCase):
     def test_correct_template_views(self):
         """ Вызываются верные шаблоны по соответствующим им именам """
         view_templates = {
-            "index.html": reverse("index"),
-            "group.html": reverse("group_slug", kwargs={"slug": "aviators"}),
-            "show_groups.html": reverse("show_groups"),
-            "new_post.html": reverse("new_post"),
+            "index.html": reverse("posts:index"),
+            "group.html": reverse("posts:group_slug",
+                                  kwargs={"slug": "aviators"}),
+            "show_groups.html": reverse("posts:show_groups"),
+            "new_post.html": reverse("posts:new_post"),
         }
 
         for template, reverse_name in view_templates.items():
@@ -76,13 +79,13 @@ class StaticURLTests(TestCase):
 
     def test_correct_context_index(self):
         """ в котнекст index передается объект Post """
-        response = self.authorized_client.get(reverse("index"))
+        response = self.authorized_client.get(reverse("posts:index"))
         self.assertIsInstance(response.context.get("page")[0], Post)
 
     def test_correct_context_group(self):
         """ в котнекст group/slug передаются объекты Post, Group """
         response = self.authorized_client.get(reverse(
-            "group_slug",
+            "posts:group_slug",
             kwargs={"slug": "aviators"})
         )
         self.assertIsInstance(response.context.get("page")[0], Post)
@@ -90,7 +93,7 @@ class StaticURLTests(TestCase):
 
     def test_correct_context_new_post(self):
         """ новый пост содержит текстовое поле и выбор группы """
-        response = self.authorized_client.get(reverse("new_post"))
+        response = self.authorized_client.get(reverse("posts:new_post"))
         form_fields = {
             "text": forms.fields.CharField,
             "group": forms.fields.ChoiceField
@@ -103,11 +106,11 @@ class StaticURLTests(TestCase):
     def test_post_created_at_index(self):
         """ Новые пост появляется на главной """
         # у нас в базе 2 сообщения
-        self.assertEqual(len(self.contexts["index"]), 2)
+        self.assertEqual(len(self.contexts["posts:index"]), 2)
 
-        self.assertEqual(self.contexts["index"][1].text,
+        self.assertEqual(self.contexts["posts:index"][1].text,
                          "Запись в сообществе Авиаторы")
-        self.assertEqual(self.contexts["index"][0].text,
+        self.assertEqual(self.contexts["posts:index"][0].text,
                          "Запись без сообщества")
 
     def test_post_created_at_group(self):

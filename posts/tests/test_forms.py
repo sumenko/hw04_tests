@@ -27,7 +27,7 @@ class TestForms(TestCase):
             "group": ""
         }
         self.authorized_client.post(
-            reverse("new_post"),
+            reverse("posts:new_post"),
             data=form_data,
             follow=True
         )
@@ -45,7 +45,7 @@ class TestForms(TestCase):
             "group": ""
         }
         self.authorized_client.post(
-            reverse("new_post"),
+            reverse("posts:new_post"),
             data=form_data,
             follow=True
         )
