@@ -14,5 +14,4 @@ def addclass(field, css):
 def uglify(text):
     """ ДеЛаЕт тАк """
     return "".join(
-        c.upper() if i % 2 else c.lower() for i, c in enumerate(text)
-                   )
+        c.upper() if i % 2 else c.lower() for i, c in enumerate(text))
