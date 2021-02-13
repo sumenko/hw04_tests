@@ -9,8 +9,8 @@ class StaticURLTests(TestCase):
     def setUpClass(cls):  # вызывается перед запуском всех test case
         super().setUpClass()
         # наш тестовый пользователь
-        cls.user_one = get_user_model().objects.create(username="Johndoe")
-        cls.user_two = get_user_model().objects.create(username="Myst")
+        cls.user_one = get_user_model().objects.create(username="johndoe")
+        cls.user_two = get_user_model().objects.create(username="myst")
 
         # Создаем группу
         Group.objects.create(
@@ -18,10 +18,10 @@ class StaticURLTests(TestCase):
             slug="aviators",
             description="Мы любим собирать самолёты",
         )
-        Post.objects.create(text="Test text from Johndoe",
+        Post.objects.create(text="Test text from johndoe",
                             author=cls.user_one,
                             group=None)
-        Post.objects.create(text="Test text from Myst",
+        Post.objects.create(text="Test text from myst",
                             author=cls.user_two,
                             group=None)
 
@@ -29,7 +29,7 @@ class StaticURLTests(TestCase):
         # фикстуры: готовим пользователей тут
         self.guest_client = Client()
 
-        self.user = get_user_model().objects.get(username="Myst")
+        self.user = get_user_model().objects.get(username="myst")
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -48,10 +48,10 @@ class StaticURLTests(TestCase):
             ("/group/non-exists/", 404),
             ("/group/aviators/", 200),
             ("/new/", 200),
-            ("/Johndoe/", 200),
-            ("/Johndoe/1/", 200),
-            ("/Myst/1/edit/", 404),  # не автор поста, пост не существует
-            ("/Myst/2/edit/", 200),  # автор поста
+            ("/johndoe/", 200),
+            ("/johndoe/1/", 200),
+            ("/myst/1/edit/", 404),  # не автор поста, пост не существует
+            ("/myst/2/edit/", 200),  # автор поста
             ("/nonexistsuser/", 404),
         ]
         for url, correct_code in cases:
@@ -68,10 +68,10 @@ class StaticURLTests(TestCase):
             ("/about/author/", 200),
             ("/about/tech/", 200),
             ("/new/", 302),
-            ("/Johndoe/", 200),
-            ("/Johndoe/1/", 200),
-            ("/Myst/1/edit/", 302),  # не авторизован, пост не существует
-            ("/Myst/2/edit/", 302),  # не авторизован, пост существует
+            ("/johndoe/", 200),
+            ("/johndoe/1/", 200),
+            ("/myst/1/edit/", 302),  # не авторизован, пост не существует
+            ("/myst/2/edit/", 302),  # не авторизован, пост существует
             ("/nonexistsuser/", 404),
         ]
         for url, correct_code in url_cases:
@@ -84,6 +84,10 @@ class StaticURLTests(TestCase):
         response = self.guest_client.get("/new/", follow=True)
         self.assertRedirects(response, "/auth/login/?next=%2Fnew%2F")
 
+    def test_edit_post_redirect_wrong_user(self):
+        response = self.authorized_client.get("/johndoe/1/edit/", follow=True)
+        self.assertRedirects(response, "/johndoe/1/")
+
     # темплейты для авторизованного и анонимуса
     def test_templates_authorized(self):
         template_cases = [
@@ -91,9 +95,10 @@ class StaticURLTests(TestCase):
             ("/group/aviators/", "group.html"),
             ("/group/", "show_groups.html"),
             ("/new/", "new_post.html"),
+            ("/myst/2/edit/", "new_post.html"),
         ]
         for url, template in template_cases:
-            with self.subTest():
+            with self.subTest(value=url):
                 response = self.authorized_client.get(url)
                 self.assertTemplateUsed(response, template)
 
