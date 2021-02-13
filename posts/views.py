@@ -85,6 +85,7 @@ def new_post(request, username=None, post_id=None):
     """ Создать/редактировать новый пост """
     # !!! TODO сделать названия кнопок другие и страницы для едит и нью
     instance = None
+    new_post = True  # поумолчанию - создать если ниже не сказано иное
     # не тот пользователь - уходим
     if request.user.username != username and post_id:
         return redirect("post", username, post_id)
@@ -92,12 +93,14 @@ def new_post(request, username=None, post_id=None):
     if username and post_id:  # Если установлены - значит редактирование
         user = get_object_or_404(get_user_model(), username=username)
         instance = get_object_or_404(Post, author=user, id=post_id)
+        new_post = False
 
     form = PostForm(request.POST or None, instance=instance)
 
     if request.GET or not form.is_valid():
         return render(request, "new_post.html",
                       {"form": form,
+                       "new_post": new_post,
                        "post": instance})  # тест просит, но для чего не ясно
 
     post = form.save(commit=False)
