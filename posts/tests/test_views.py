@@ -43,10 +43,10 @@ class StaticURLTests(TestCase):
         # это посты для паджинатора, ниже для предыдущих тестов
         for number in range(StaticURLTests.posts_per_page+3):
             Post.objects.create(
-                author=cls.user_one,
-                text=f"{number} запись",
-                group=None
-            )
+                                author=cls.user_one,
+                                text=f"{number} запись",
+                                group=None
+                                )
             sleep(.01)
 
     def setUp(self):  # вызывается перед запуском каждого test case
@@ -166,8 +166,8 @@ class StaticURLTests(TestCase):
 
     def test_profile_context(self):
         test_url = reverse("posts:profile", kwargs={
-                                                    "username":
-                                                    StaticURLTests.user_one})
+                                                   "username":
+                                                   StaticURLTests.user_one})
         response = self.guest_client.get(test_url)
         self.assertIsInstance(response.context.get("page"), Page)
         self.assertIn("posts_count", response.context)

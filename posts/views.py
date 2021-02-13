@@ -21,8 +21,8 @@ def get_profile_data_dict(username, add_context=None):
     """ Возвращает словарь с данными профиля пользователя """
     user = get_object_or_404(get_user_model(), username=username)
     return {
-            "username": user,
-            "posts_count": Post.objects.filter(author=user).count(),
+           "username": user,
+           "posts_count": Post.objects.filter(author=user).count()
            }
 
 

@@ -4,6 +4,7 @@
 {% block header %}Технологии{% endblock %}
 {% block content %}
 {% load user_filters %}
+{% load static %}
   <main role="main" class="container">
     <div class="row">
       <!-- Левый вспомогательный блок -->
@@ -12,13 +13,14 @@
           <div class="card-body">
             <ul class="list-group list-group-flush">
               <li class="list-group-item">
-                <div class="h3">
-                  О технологиях
+                <div class="h4">
+                  <br>
+                  <img src="{% static 'img/bender.png' %}">
                 </div> 
               </li>
               <li class="list-group-item">
                 <div class="h6 text-muted">
-                  Полезный короткий текст
+                  Слава роботам!
                 </div>
               </li>
             </ul>                                               
@@ -29,7 +31,11 @@
       <div class="col-md-9">
         <div class="card-body">                    
           <div class="card-text">
-            <p>Текст страницы "О технологиях"</p>
+            <p><b>Django</b> - очень классный фреймворк</p>
+            <p><b>Python</b> - очень классный язык</p>
+            <p><b>flake8</b> - очень полезная утилита</p>
+            <p><b>isort</b> - очень классный форматтер</p>
+            <p><b>Django backend от Яндекс.Практикум</b> - очень классный курс. Как много я узнал тут.</p>
           </div>                    
         </div>                
       </div>            

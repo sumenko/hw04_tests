@@ -4,21 +4,23 @@
 {% block header %}Об авторе проекта{% endblock %}
 {% block content %}
 {% load user_filters %}
-  <main role="main" class="container">
-    <div class="row">
-      <!-- Левый вспомогательный блок -->
-      <div class="col-md-3 mb-3 mt-1">
-        <div class="card">
-          <div class="card-body">
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">
-                <div class="h3">
-                  Об авторе
+{% load static %}
+<main role="main" class="container">
+  <div class="row">
+    <!-- Левый вспомогательный блок -->
+    <div class="col-md-3 mb-3 mt-1">
+      <div class="card">
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="h3">
+                <br>
+                <img src="{% static 'img/cup.png' %}">
                 </div> 
               </li>
               <li class="list-group-item">
                 <div class="h6 text-muted">
-                  Полезный короткий текст
+                  FidoNet 2:5017/10.13 
                 </div>
               </li>
             </ul>                                               
@@ -29,7 +31,12 @@
       <div class="col-md-9">
         <div class="card-body">                    
           <div class="card-text">
-            <p>Текст страницы "Об авторе"</p>
+            Сначала у меня были черновики из перфокарт.<br>
+            Потом книжка "Энциклопедия профессора Фортрана"<br>
+            Был у меня модем и его скорость была <code>2400 бод</code><br>
+            Когда-то я написал на <code>QBasic</code> программу "Поле Чудес". На угадывание каждой буквы был свой <code>if</code>. Это была большая программа<br>
+            Потом было написано еще много программ на <code>Turbo C++, Borland C++, Visual Basic, AutoLISP, Python 2.7, 3.7</code><br>
+            Хорошо что я добрался до <b>Django</b>. И буду смотреть, что там дальше. Там очень интересно. Поехали.
           </div>                    
         </div>                
       </div>            
