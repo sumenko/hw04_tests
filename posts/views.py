@@ -1,8 +1,7 @@
 import datetime as dt
 
-from django.contrib.auth import get_user, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.core import paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.core.paginator import Paginator
@@ -16,7 +15,7 @@ def get_page(request, object_list):
     # TODO лучше передавать реквест или извлеченный номер страницы?
     loc_paginator = Paginator(object_list, 10)
     page_number = request.GET.get("page")
-    return loc_paginator.get_page(page_number)
+    return loc_paginator.get_page(page_number), loc_paginator
 
 
 def get_profile_data_dict(username, add_context=None):
@@ -32,8 +31,11 @@ def get_profile_data_dict(username, add_context=None):
 def index(request):
     """ Вывод последних 10 постов из базы """
     post_list = Post.objects.all()
-    page = get_page(request, post_list)
-    return render(request, "index.html", {"page": page})
+    page, paginator = get_page(request, post_list)
+    return render(request,
+                  "index.html",
+                  {"page": page,
+                   "paginator": paginator})
 
 
 def group_posts(request, slug=None):
@@ -41,8 +43,13 @@ def group_posts(request, slug=None):
     group = get_object_or_404(Group, slug=slug)
     # Получаем все посты принадлежащие slug через related_name
     posts = group.posts.all()
-    page = get_page(request, posts)
-    return render(request, "group.html", {"group": group, "page": page})
+    page, paginator = get_page(request, posts)
+    return render(request,
+                  "group.html",
+                  {"group": group,
+                   "page": page,
+                   # передаем paginator в контекст чтобы пройти тест
+                   "paginator": paginator})
 
 
 def show_groups(request):
@@ -57,8 +64,8 @@ def profile(request, username):
     context = get_profile_data_dict(username)
     user = get_user_model().objects.get(username=username)
     posts = user.posts.all()
-    page = get_page(request, posts)
-    context.update({"page": page})
+    page, paginator = get_page(request, posts)  # костыль paginator для тестов
+    context.update({"page": page, "paginator": paginator})
 
     # обязательно отдаем username и full_name, на случай если нет постов
     return render(request, "profile.html", context)
