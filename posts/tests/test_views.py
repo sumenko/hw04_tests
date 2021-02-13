@@ -50,10 +50,9 @@ class StaticURLTests(TestCase):
             ("group-two", reverse("group_slug", kwargs={"slug": "group-two"})),
         ]
         self.contexts = {}
-        
+
         for group, test_url in test_urls:
             response = self.authorized_client.get(test_url)
-            print("{}: {}: {}".format(group, test_url, response.context.get("page")))
             self.contexts[group] = response.context.get("page")
 
     def test_correct_template_views(self):  # TODO не проходит!!!
@@ -62,15 +61,12 @@ class StaticURLTests(TestCase):
             "index.html": reverse("index"),
             "group.html": reverse("group_slug", kwargs={"slug": "aviators"}),
             "show_groups.html": reverse("show_groups"),
-            "new_post.html": reverse("new_post",
-                                     kwargs={}),
+            "new_post.html": reverse("new_post"),
         }
 
         for template, reverse_name in view_templates.items():
-            print("Getting: {} {}".format(template, reverse_name))
             with self.subTest():
                 response = self.authorized_client.get(reverse_name)
-                print(response)
                 self.assertTemplateUsed(response, template)
 
     def test_correct_context_index(self):
@@ -102,7 +98,7 @@ class StaticURLTests(TestCase):
     def test_post_created_at_index(self):
         """ Новые пост появляется на главной """
         # у нас в базе 2 сообщения
-        self.assertEqual(self.contexts["index"].count(), 2)
+        self.assertEqual(len(self.contexts["index"]), 2)
 
         self.assertEqual(self.contexts["index"][0].text,
                          "Запись в сообществе Авиаторы")
@@ -112,11 +108,11 @@ class StaticURLTests(TestCase):
     def test_post_created_at_group(self):
         """  Пост в группу появляется только в своём сообществе """
         # Сюда должна попасть только одна запись и только нужная нам
-        self.assertEqual(self.contexts["aviators"].count(), 1)
+        self.assertEqual(len(self.contexts["aviators"]), 1)
 
         self.assertEqual(self.contexts["aviators"][0].text,
                          "Запись в сообществе Авиаторы")
 
     def test_post_created_at_another_group(self):
         """  Пост в группу не появляется в другом сообществе """
-        self.assertEqual(self.contexts["group-two"].count(), 0)
+        self.assertEqual(len(self.contexts["group-two"]), 0)

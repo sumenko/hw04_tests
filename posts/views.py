@@ -66,7 +66,6 @@ def profile(request, username):
 
 def view_post(request, username, post_id):
     """ Посмотреть пост под номером post_id """
-    print("view_post")
     context = {"post": Post.objects.get(id=post_id), "post_id": post_id}
     context.update(get_profile_data_dict(username))
     return render(request, "post.html", context)
@@ -78,7 +77,7 @@ def new_post(request, username=None, post_id=None):
     # !!! TODO сделать названия кнопок другие и страницы для едит и нью
     instance = None
     # не тот пользователь - уходим
-    if request.user.username != username:
+    if request.user.username != username and post_id:
         return redirect("post", username, post_id)
 
     if username and post_id:  # Если установлены - значит редактирование

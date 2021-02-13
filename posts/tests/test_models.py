@@ -86,7 +86,6 @@ class TestGroupModels(TestCase):
     # TODO: доделать проверку что пишется небольше чем можно
     @skip("Разобраться, почему max_length не ограничивает поля в Model")
     def test_long_group_fields(self):
-        # print("<", TestGroupModels.long_group.title,">")
         self.assertEqual(len(TestGroupModels.long_group.title), 200)
         self.assertEqual(len(TestGroupModels.long_group.slug), 100)
         self.assertEqual(len(TestGroupModels.long_group.description), 100)
