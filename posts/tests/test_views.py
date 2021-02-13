@@ -1,7 +1,10 @@
+from time import sleep
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+
 from posts.models import Group, Post
 
 
@@ -28,6 +31,8 @@ class StaticURLTests(TestCase):
             text="Запись в сообществе Авиаторы",
             group=group_link,
         )
+        # иногда они пишутся с одним временем и тесты странно ведут себя
+        sleep(.1)  # потому ставим задержку
         Post.objects.create(
             author=cls.user_one,
             text="Запись без сообщества",
@@ -55,7 +60,7 @@ class StaticURLTests(TestCase):
             response = self.authorized_client.get(test_url)
             self.contexts[group] = response.context.get("page")
 
-    def test_correct_template_views(self):  # TODO не проходит!!!
+    def test_correct_template_views(self):
         """ Вызываются верные шаблоны по соответствующим им именам """
         view_templates = {
             "index.html": reverse("index"),
@@ -100,10 +105,10 @@ class StaticURLTests(TestCase):
         # у нас в базе 2 сообщения
         self.assertEqual(len(self.contexts["index"]), 2)
 
-        self.assertEqual(self.contexts["index"][0].text,
+        self.assertEqual(self.contexts["index"][1].text,
                          "Запись в сообществе Авиаторы")
-        self.assertEqual(self.contexts["index"]
-                         [1].text, "Запись без сообщества")
+        self.assertEqual(self.contexts["index"][0].text,
+                         "Запись без сообщества")
 
     def test_post_created_at_group(self):
         """  Пост в группу появляется только в своём сообществе """

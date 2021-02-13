@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from posts.models import Group
+
+from posts.models import Group, Post
 
 
 class StaticURLTests(TestCase):
@@ -9,6 +10,7 @@ class StaticURLTests(TestCase):
         super().setUpClass()
         # наш тестовый пользователь
         cls.user_one = get_user_model().objects.create(username="Johndoe")
+        cls.user_two = get_user_model().objects.create(username="Myst")
 
         # Создаем группу
         Group.objects.create(
@@ -16,12 +18,18 @@ class StaticURLTests(TestCase):
             slug="aviators",
             description="Мы любим собирать самолёты",
         )
+        Post.objects.create(text="Test text from Johndoe",
+                            author=cls.user_one,
+                            group=None)
+        Post.objects.create(text="Test text from Myst",
+                            author=cls.user_two,
+                            group=None)
 
     def setUp(self):  # вызывается перед запуском каждого test case
         # фикстуры: готовим пользователей тут
         self.guest_client = Client()
 
-        self.user = get_user_model().objects.create(username="Myst")
+        self.user = get_user_model().objects.get(username="Myst")
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -32,14 +40,22 @@ class StaticURLTests(TestCase):
 
     # проверить доступность в соответствии с правами
     def test_urls_authorized(self):
+
         cases = [
             ("/", 200),
-            ("/group/group-one/", 404),
+            ("/about/author/", 200),
+            ("/about/tech/", 200),
+            ("/group/non-exists/", 404),
             ("/group/aviators/", 200),
             ("/new/", 200),
+            ("/Johndoe/", 200),
+            ("/Johndoe/1/", 200),
+            ("/Myst/1/edit/", 404),  # не автор поста, пост не существует
+            ("/Myst/2/edit/", 200),  # автор поста
+            ("/nonexistsuser/", 404),
         ]
         for url, correct_code in cases:
-            with self.subTest():
+            with self.subTest(value=url):
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, correct_code)
 
@@ -47,12 +63,19 @@ class StaticURLTests(TestCase):
     def test_urls_anonymous(self):
         url_cases = [
             ("/", 200),
-            ("/group/group-one/", 404),
+            ("/group/non-exists/", 404),
             ("/group/aviators/", 200),
+            ("/about/author/", 200),
+            ("/about/tech/", 200),
             ("/new/", 302),
+            ("/Johndoe/", 200),
+            ("/Johndoe/1/", 200),
+            ("/Myst/1/edit/", 302),  # не авторизован, пост не существует
+            ("/Myst/2/edit/", 302),  # не авторизован, пост существует
+            ("/nonexistsuser/", 404),
         ]
         for url, correct_code in url_cases:
-            with self.subTest():
+            with self.subTest(value=url):
                 response = self.guest_client.get(url)
                 self.assertEqual(response.status_code, correct_code)
 
