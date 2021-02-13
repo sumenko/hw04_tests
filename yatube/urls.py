@@ -18,7 +18,6 @@ from django.urls import include, path
 
 urlpatterns = [
     # импорт правил из приложения posts
-    path("", include("posts.urls")),
     path("about/", include("about.urls", namespace="about")),
     # регистрация и авторизация
     path("auth/", include("users.urls")),
@@ -26,4 +25,5 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     # импорт правил из приложения admin
     path("admin/", admin.site.urls),
+    path("", include("posts.urls")),
 ]

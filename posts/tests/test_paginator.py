@@ -9,9 +9,8 @@ class TestPaginator(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = get_user_model().objects.create(username="Johndoe")
+        cls.user = get_user_model().objects.create(username="johndoe")
         for number in range(13):
-            # print(f"Create post {number}")
             Post.objects.create(
                 text="Тестовая запись {number}",
                 author=cls.user

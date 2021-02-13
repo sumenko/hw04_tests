@@ -20,7 +20,6 @@ def get_page(request, object_list):
 
 def get_profile_data_dict(username, add_context=None):
     """ Возвращает словарь с данными профиля пользователя """
-    # user = get_user_model().objects.get(username=username)
     user = get_object_or_404(get_user_model(), username=username)
     return {
             "username": user,
@@ -67,7 +66,7 @@ def profile(request, username):
     page, paginator = get_page(request, posts)  # костыль paginator для тестов
     context.update({"page": page, "paginator": paginator})
 
-    # обязательно отдаем username и full_name, на случай если нет постов
+    # обязательно отдаем username, на случай если нет постов
     return render(request, "profile.html", context)
 
 
@@ -83,7 +82,6 @@ def view_post(request, username, post_id):
 @login_required
 def new_post(request, username=None, post_id=None):
     """ Создать/редактировать новый пост """
-    # !!! TODO сделать названия кнопок другие и страницы для едит и нью
     instance = None
     new_post = True  # поумолчанию - создать если ниже не сказано иное
     # не тот пользователь - уходим
