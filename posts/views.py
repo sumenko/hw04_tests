@@ -59,7 +59,7 @@ def profile(request, username):
     posts = user.posts.all()
     page = get_page(request, posts)
     context.update({"page": page})
-    
+
     # обязательно отдаем username и full_name, на случай если нет постов
     return render(request, "profile.html", context)
 

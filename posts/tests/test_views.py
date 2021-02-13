@@ -50,28 +50,33 @@ class StaticURLTests(TestCase):
             ("group-two", reverse("group_slug", kwargs={"slug": "group-two"})),
         ]
         self.contexts = {}
+        
         for group, test_url in test_urls:
             response = self.authorized_client.get(test_url)
-            self.contexts[group] = response.context.get("posts")
+            print("{}: {}: {}".format(group, test_url, response.context.get("page")))
+            self.contexts[group] = response.context.get("page")
 
-    def test_correct_template_views(self):
+    def test_correct_template_views(self):  # TODO не проходит!!!
         """ Вызываются верные шаблоны по соответствующим им именам """
         view_templates = {
             "index.html": reverse("index"),
             "group.html": reverse("group_slug", kwargs={"slug": "aviators"}),
             "show_groups.html": reverse("show_groups"),
-            "new_post.html": reverse("new_post"),
+            "new_post.html": reverse("new_post",
+                                     kwargs={}),
         }
 
         for template, reverse_name in view_templates.items():
+            print("Getting: {} {}".format(template, reverse_name))
             with self.subTest():
                 response = self.authorized_client.get(reverse_name)
+                print(response)
                 self.assertTemplateUsed(response, template)
 
     def test_correct_context_index(self):
         """ в котнекст index передается объект Post """
         response = self.authorized_client.get(reverse("index"))
-        self.assertIsInstance(response.context.get("posts")[0], Post)
+        self.assertIsInstance(response.context.get("page")[0], Post)
 
     def test_correct_context_group(self):
         """ в котнекст group/slug передаются объекты Post, Group """
@@ -79,7 +84,7 @@ class StaticURLTests(TestCase):
             "group_slug",
             kwargs={"slug": "aviators"})
         )
-        self.assertIsInstance(response.context.get("posts")[0], Post)
+        self.assertIsInstance(response.context.get("page")[0], Post)
         self.assertIsInstance(response.context.get("group"), Group)
 
     def test_correct_context_new_post(self):
