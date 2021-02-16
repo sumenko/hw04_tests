@@ -36,7 +36,7 @@ class StaticURLTests(TestCase):
 
     def test_url_exists_homepage(self):
         # Делаем запрос к главной странице и проверяем статус
-        response = self.guest_client.get("/")
+        response = self.guest_client.get(reverse("posts:index"))
         self.assertEqual(response.status_code, 200)
 
     # проверить доступность в соответствии с правами
@@ -46,9 +46,8 @@ class StaticURLTests(TestCase):
             (reverse("posts:index"), 200),
             (reverse("posts:group_slug", kwargs={"slug": "non-exists"}), 404),
             (reverse("posts:group_slug", kwargs={"slug": "aviators"}), 200),
-
+            # тут влияет авторизован/нет
             (reverse("posts:new_post"), 200),
-
             (reverse("posts:profile", kwargs={"username": "johndoe"}), 200),
             (reverse("posts:profile",
                      kwargs={"username": "nonexistsuser"}), 404),
@@ -74,6 +73,7 @@ class StaticURLTests(TestCase):
             (reverse("posts:index"), 200),
             (reverse("posts:group_slug", kwargs={"slug": "non-exists"}), 404),
             (reverse("posts:group_slug", kwargs={"slug": "aviators"}), 200),
+            # тут влияет авторизован/нет
             (reverse("posts:new_post"), 302),
             (reverse("posts:profile", kwargs={"username": "johndoe"}), 200),
             (reverse("posts:profile",
@@ -96,12 +96,19 @@ class StaticURLTests(TestCase):
 
     # редиректы
     def test_new_post_redirect_anonymous(self):
-        response = self.guest_client.get("/new/", follow=True)
-        self.assertRedirects(response, "/auth/login/?next=%2Fnew%2F")
+        response = self.guest_client.get(reverse("posts:new_post"),
+                                         follow=True)
+        self.assertRedirects(response, reverse("login") + "?next=%2Fnew%2F")
 
     def test_edit_post_redirect_wrong_user(self):
-        response = self.authorized_client.get("/johndoe/1/edit/", follow=True)
-        self.assertRedirects(response, "/johndoe/1/")
+        response = self.authorized_client.get(
+            reverse("posts:edit_post",
+                    kwargs={"username": "johndoe", "post_id": "1"}),
+            follow=True)
+        self.assertRedirects(response,
+                             reverse("posts:post", kwargs={
+                                     "username": "johndoe",
+                                     "post_id": "1"}))
 
     # темплейты для авторизованного и анонимуса
     def test_templates_authorized(self):
@@ -109,9 +116,11 @@ class StaticURLTests(TestCase):
             (reverse("posts:index"), "index.html"),
             (reverse("posts:group_slug",
                      kwargs={"slug": "aviators"}), "group.html"),
-            ("/group/", "show_groups.html"),
-            ("/new/", "new_post.html"),
-            ("/myst/2/edit/", "new_post.html"),
+            (reverse("posts:show_groups"), "show_groups.html"),
+            (reverse("posts:new_post"), "new_post.html"),
+            (reverse("posts:edit_post",
+                     kwargs={"username": "myst", "post_id": 2}),
+                "new_post.html"),
         ]
         for url, template in template_cases:
             with self.subTest(value=url):
