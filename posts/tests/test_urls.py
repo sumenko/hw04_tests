@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
+from django.urls import reverse
 
 from posts.models import Group, Post
 
@@ -42,17 +43,25 @@ class StaticURLTests(TestCase):
     def test_urls_authorized(self):
 
         cases = [
-            ("/", 200),
-            ("/about/author/", 200),
-            ("/about/tech/", 200),
-            ("/group/non-exists/", 404),
-            ("/group/aviators/", 200),
-            ("/new/", 200),
-            ("/johndoe/", 200),
-            ("/johndoe/1/", 200),
-            ("/myst/1/edit/", 404),  # не автор поста, пост не существует
-            ("/myst/2/edit/", 200),  # автор поста
-            ("/nonexistsuser/", 404),
+            (reverse("posts:index"), 200),
+            (reverse("posts:group_slug", kwargs={"slug": "non-exists"}), 404),
+            (reverse("posts:group_slug", kwargs={"slug": "aviators"}), 200),
+
+            (reverse("posts:new_post"), 200),
+
+            (reverse("posts:profile", kwargs={"username": "johndoe"}), 200),
+            (reverse("posts:profile",
+                     kwargs={"username": "nonexistsuser"}), 404),
+            (reverse("posts:post",
+                     kwargs={"username": "johndoe", "post_id": "1"}), 200),
+            # не автор, пост не существует
+            (reverse("posts:edit_post",
+                     kwargs={"username": "myst", "post_id": "1"}), 404),
+            # автор, пост существует
+            (reverse("posts:edit_post",
+                     kwargs={"username": "myst", "post_id": "2"}), 200),
+            (reverse("about:author"), 200),
+            (reverse("about:tech"), 200),
         ]
         for url, correct_code in cases:
             with self.subTest(value=url):
@@ -62,17 +71,23 @@ class StaticURLTests(TestCase):
     # обратиться по URL и проверить ожидаемые шаблоны
     def test_urls_anonymous(self):
         url_cases = [
-            ("/", 200),
-            ("/group/non-exists/", 404),
-            ("/group/aviators/", 200),
-            ("/about/author/", 200),
-            ("/about/tech/", 200),
-            ("/new/", 302),
-            ("/johndoe/", 200),
-            ("/johndoe/1/", 200),
-            ("/myst/1/edit/", 302),  # не авторизован, пост не существует
-            ("/myst/2/edit/", 302),  # не авторизован, пост существует
-            ("/nonexistsuser/", 404),
+            (reverse("posts:index"), 200),
+            (reverse("posts:group_slug", kwargs={"slug": "non-exists"}), 404),
+            (reverse("posts:group_slug", kwargs={"slug": "aviators"}), 200),
+            (reverse("posts:new_post"), 302),
+            (reverse("posts:profile", kwargs={"username": "johndoe"}), 200),
+            (reverse("posts:profile",
+                     kwargs={"username": "nonexistsuser"}), 404),
+            (reverse("posts:post",
+                     kwargs={"username": "johndoe", "post_id": "1"}), 200),
+            # не авторизован, пост не существует
+            (reverse("posts:edit_post",
+                     kwargs={"username": "myst", "post_id": "1"}), 302),
+            # не авторизован, пост существует
+            (reverse("posts:edit_post",
+                     kwargs={"username": "myst", "post_id": "2"}), 302),
+            (reverse("about:author"), 200),
+            (reverse("about:tech"), 200),
         ]
         for url, correct_code in url_cases:
             with self.subTest(value=url):
@@ -91,8 +106,9 @@ class StaticURLTests(TestCase):
     # темплейты для авторизованного и анонимуса
     def test_templates_authorized(self):
         template_cases = [
-            ("/", "index.html"),
-            ("/group/aviators/", "group.html"),
+            (reverse("posts:index"), "index.html"),
+            (reverse("posts:group_slug",
+                     kwargs={"slug": "aviators"}), "group.html"),
             ("/group/", "show_groups.html"),
             ("/new/", "new_post.html"),
             ("/myst/2/edit/", "new_post.html"),
@@ -104,10 +120,12 @@ class StaticURLTests(TestCase):
 
     # темплейты
     def test_templates_anonymous(self):
+        """ Проверка использования шаблонов для анонимного пользователя """
         template_cases = [
-            ("/", "index.html"),
-            ("/group/aviators/", "group.html"),
-            ("/group/", "show_groups.html"),
+            (reverse("posts:index"), "index.html"),
+            (reverse("posts:group_slug",
+                     kwargs={"slug": "aviators"}), "group.html"),
+            (reverse("posts:show_groups"), "show_groups.html"),
         ]
         for url, template in template_cases:
             with self.subTest():

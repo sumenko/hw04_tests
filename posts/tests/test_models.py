@@ -8,14 +8,11 @@ class TestPostModels(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # pylance почему-то ругается что не может доступиться к create_user
         cls.user = get_user_model().objects.create_user(username="Myst")
 
-        Post.objects.create(
+        cls.post = Post.objects.create(
             author=cls.user,
-            text="Это тестовый текст в посте"
-        )
-        cls.post = Post.objects.get(id=1)
+            text="Это тестовый текст в посте")
 
     def test_post_verbose_names(self):
         post = TestPostModels.post
@@ -37,12 +34,11 @@ class TestGroupModels(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        Group.objects.create(
+        cls.group = Group.objects.create(
             title="Авиа",
             slug="aviators",
             description="Сообщество любителей авиамоделей"
         )
-        cls.group = Group.objects.get(id=1)
         # TODO: проверим сообщество с длинным названием
         Group.objects.create(
             title="А" * 200,
