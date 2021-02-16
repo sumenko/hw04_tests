@@ -100,7 +100,6 @@ def new_post(request, username=None, post_id=None):
                        "post": instance})  # тест просит, но для чего не ясно
 
     post = form.save(commit=False)
-    # post.pub_date = dt.datetime.now()
     post.pub_date = timezone.now()
     post.author = request.user
     post.save()
