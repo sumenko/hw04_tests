@@ -10,15 +10,14 @@ from .models import Group, Post
 
 
 def get_page(request, object_list):
-    """ Возвращает контекст page от paginator"""
-    # TODO лучше передавать реквест или извлеченный номер страницы?
+    """ Возвращает контекст page от paginator """
     loc_paginator = Paginator(object_list, 10)
     page_number = request.GET.get("page")
     return loc_paginator.get_page(page_number), loc_paginator
 
 
 def get_profile_data_dict(username, add_context=None):
-    """ Возвращает словарь с данными профиля пользователя """
+    """ Возвращает словарь с данными профиля и объектом пользователя """
     user = get_object_or_404(get_user_model(), username=username)
     return {
         "username": user,
@@ -42,7 +41,8 @@ def group_posts(request, slug=None):
     page, paginator = get_page(request, posts)
     return render(request,
                   "group.html",
-                  {"group": group,
+                  {
+                   "group": group,
                    "page": page,
                    # передаем paginator в контекст чтобы пройти тест
                    "paginator": paginator}
@@ -59,8 +59,7 @@ def profile(request, username):
     """ Выводит профиль пользователя и его посты """
     # цепляем данные профиля
     context = get_profile_data_dict(username)
-    user = get_user_model().objects.get(username=username)
-    posts = user.posts.all()
+    posts = context["username"].posts.all()
     page, paginator = get_page(request, posts)  # костыль paginator для тестов
     context.update({"page": page, "paginator": paginator})
 
@@ -70,10 +69,10 @@ def profile(request, username):
 
 def view_post(request, username, post_id):
     """ Посмотреть пост под номером post_id """
-    user = get_object_or_404(get_user_model(), username=username)
-    post = get_object_or_404(Post, id=post_id, author=user)
-    context = {"post": post, "post_id": post_id}
-    context.update(get_profile_data_dict(username))
+    context = get_profile_data_dict(username)
+    post = get_object_or_404(Post, id=post_id,
+                             author__username=context["username"])
+    context.update({"post": post, "post_id": post_id})
     return render(request, "post.html", context)
 
 
@@ -104,7 +103,7 @@ def new_post(request, username=None, post_id=None):
     post.pub_date = timezone.now()
     post.author = request.user
     post.save()
-    # если доши сюда и пользователь совпадает, значит вернемся к посту
+    # если дошли сюда и пользователь совпадает, значит вернемся к посту
     if request.user.username == username:
         return redirect("posts:post", username, post_id)
 
