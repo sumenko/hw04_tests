@@ -87,7 +87,9 @@ def new_post(request, username=None, post_id=None):
         return redirect("posts:post", username, post_id)
 
     if username and post_id:  # Если установлены - значит редактирование
-        instance = get_object_or_404(Post, author__username=username, id=post_id)
+        instance = get_object_or_404(Post,
+                                     author__username=username,
+                                     id=post_id)
         new_post = False
 
     form = PostForm(request.POST or None, instance=instance)

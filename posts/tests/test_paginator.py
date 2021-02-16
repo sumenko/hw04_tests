@@ -10,11 +10,12 @@ class TestPaginator(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = get_user_model().objects.create(username="johndoe")
-        for number in range(13):
-            Post.objects.create(
-                text="Тестовая запись {number}",
-                author=cls.user
-            )
+        Post.objects.bulk_create(
+            [
+             Post(text=f"Тестовая запись {number}", author=cls.user)
+             for number in range(13)
+             ]
+        )
 
     def setUp(self):
         super().setUp()
