@@ -41,9 +41,7 @@ def group_posts(request, slug=None):
     page, paginator = get_page(request, posts)
     return render(request,
                   "group.html",
-                  {
-                   "group": group,
-                   "page": page,
+                  {"group": group, "page": page,
                    # передаем paginator в контекст чтобы пройти тест
                    "paginator": paginator}
                   )

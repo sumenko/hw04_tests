@@ -66,7 +66,7 @@ TEMPLATES_USERS = os.path.join(BASE_DIR, "users/templates/users")
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR, TEMPLATES_POSTS, TEMPLATES_ABOUT, 
+        'DIRS': [TEMPLATES_DIR, TEMPLATES_POSTS, TEMPLATES_ABOUT,
                  TEMPLATES_USERS],
         'APP_DIRS': True,
         'OPTIONS': {
