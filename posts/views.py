@@ -89,7 +89,9 @@ def new_post(request, username=None, post_id=None):
                                      id=post_id)
         new_post = False
 
-    form = PostForm(request.POST or None, instance=instance)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None,
+                    instance=instance)
 
     if request.GET or not form.is_valid():
         return render(request, "new_post.html",

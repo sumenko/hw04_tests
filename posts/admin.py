@@ -5,7 +5,7 @@ from .models import Group, Post
 
 class PostAdmin(admin.ModelAdmin):
     # Перечисляем поля для отображения в таблице
-    list_display = ("pk", "text", "pub_date", "author", "group")
+    list_display = ("pk", "text", "pub_date", "author", "group", "image")
     # Перечисляем поля по которым можно будет искать
     search_fields = ("text", "group")
     # фильтр
