@@ -2,7 +2,7 @@
 {% block title %}Записи сообщества {{ group }}{% endblock %}
 {% block header %}Записи сообщества {{ group }}{% endblock %}
 {% block content %}
-
+{% load thumbnail %}
 <h1>{{ group }}</h1>
 <p>
     {{ group.description }}
@@ -11,6 +11,9 @@
 <h3>
     Автор: <a href="{% url 'posts:profile' post.author.username %}">{{ post.author.get_full_name }}</a>, дата публикации: {{ post.pub_date|date:"d M Y" }}
 </h3>
+{% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+    <img class="card-img" src="{{ im.url }}">
+{% endthumbnail %}
 <p>{{ post.text|linebreaksbr }}</p>
 <hr>
 {% endfor %}

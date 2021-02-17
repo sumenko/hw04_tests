@@ -16,13 +16,27 @@ class TestPostModels(TestCase):
 
     def test_post_verbose_names(self):
         post = TestPostModels.post
-        verbose_name = post._meta.get_field('text').verbose_name
-        self.assertEqual(verbose_name, "Текст")
+        verbose_names = [
+            ('text', 'Текст'),
+            ('image', 'Картинка'),
+        ]
+        for field_name, verbose_name in verbose_names:
+            with self.subTest(value=field_name):
+                test_name = post._meta.get_field(field_name).verbose_name
+                self.assertEqual(test_name, verbose_name)
 
     def test_post_help_texts(self):
         post = TestPostModels.post
-        verbose_name = post._meta.get_field('text').help_text
-        self.assertEqual(verbose_name, "Содержимое поста")
+        help_texts = [
+            ('text', 'Содержимое поста'),
+            ('image', 'Картинка к посту'),
+        ]
+        for field_name, help_text in help_texts:
+            with self.subTest(value=field_name):
+                test_name = post._meta.get_field(field_name).help_text
+                self.assertEqual(test_name, help_text)
+        # help_text = post._meta.get_field(field_name).help_text
+        # self.assertEqual(text_name, help_text)
 
     def test_post_str_correct(self):
         self.assertEqual(TestPostModels.post.__str__(),
@@ -52,7 +66,7 @@ class TestGroupModels(TestCase):
         verbose_names = {
             "title": "Название сообщества",
             "slug": "Адрес сообщества",
-            "description": "Описание"
+            "description": "Описание",
         }
         for field, expected in verbose_names.items():
             with self.subTest(value=field):
@@ -66,7 +80,7 @@ class TestGroupModels(TestCase):
             "title": "",
             "slug": ("уникальное название сообщества "
                      "латиницей для адресной строки"),
-            "description": "Описание сообщества"
+            "description": "Описание сообщества",
         }
         for help_text, expected in help_texts.items():
             with self.subTest(value=help_text):
