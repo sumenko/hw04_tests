@@ -6,6 +6,8 @@ app_name = "posts"
 
 # у нас два варианта: вывод всех постов или по сообществу
 urlpatterns = [
+    path("404/", views.page_not_found, name="404"),
+    path("500/", views.server_error, name="500"),
     path("", views.index, name="index"),
     path("group/<slug:slug>/", views.group_posts, name="group_slug"),
     path("group/", views.show_groups, name="show_groups"),
