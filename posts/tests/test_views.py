@@ -1,7 +1,11 @@
 from time import sleep
+import shutil
+import tempfile
 
+from django.conf import settings
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.paginator import Page
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -26,11 +30,29 @@ class StaticURLTests(TestCase):
             title="Сообщество2",
             slug="group-two",
         )
+        # Создаем картинку и добавляем в пост
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         # Создаем несколько постов от пользователя в группу и без группы
+        # Посты для новых тестов создавать осторожно, т.к. учитывается их
+        # порядок и расположение на страницах паджинатора
         Post.objects.create(
             author=cls.user_one,
             text="Запись в сообществе Авиаторы",
             group=group_link,
+            image=uploaded
         )
         # иногда они пишутся с одним временем и тесты странно ведут себя
         sleep(.01)  # потому ставим задержку
@@ -48,6 +70,11 @@ class StaticURLTests(TestCase):
                 group=None)
             sleep(.01)
 
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):  # вызывается перед запуском каждого test case
         # фикстуры: готовим пользователей тут
         self.guest_client = Client()
@@ -63,7 +90,7 @@ class StaticURLTests(TestCase):
 
         # соберем что выдают страницы для разных сообществ для проверки ниже
         test_urls = [
-            ("posts:index", reverse("posts:index")),
+            ("index", reverse("posts:index")),
             ("aviators", reverse("posts:group_slug",
                                  kwargs={"slug": "aviators"})),
             ("group-two", reverse("posts:group_slug",
@@ -143,12 +170,12 @@ class StaticURLTests(TestCase):
     def test_post_created_at_index(self):
         """ Новые пост появляется на главной """
         # у нас на странице не более 10 сообщений
-        self.assertEqual(len(self.contexts["posts:index"]),
+        self.assertEqual(len(self.contexts["index"]),
                          StaticURLTests.posts_per_page,
                          "Неправильное количество постов на странице")
-        self.assertEqual(self.contexts["posts:index"][1].text,
+        self.assertEqual(self.contexts["index"][1].text,
                          "11 запись")
-        self.assertEqual(self.contexts["posts:index"][0].text,
+        self.assertEqual(self.contexts["index"][0].text,
                          "12 запись")
 
     def test_post_created_at_group(self):
@@ -176,3 +203,27 @@ class StaticURLTests(TestCase):
         self.assertEqual(len(response.context.get("page").object_list),
                          StaticURLTests.posts_per_page,
                          "Неверное количество постов на странице")
+
+    def test_image_present_in_context(self):
+        """ Изображение передается в контекст страниц """
+        urls = [
+            reverse("posts:index")+"?page=2",
+            reverse("posts:profile",
+                    kwargs={"username": StaticURLTests.user_one})+"?page=2",
+            reverse("posts:group_slug", kwargs={"slug": "aviators"}),
+            reverse("posts:post",
+                    kwargs={"username": StaticURLTests.user_one,
+                            "post_id": "1"}),
+        ]
+
+        for url in urls[:-1]:
+            with self.subTest(value=url):
+                response = self.guest_client.get(url)
+                self.assertEqual(response.context.get("page")[-1].image,
+                                 "posts/small.gif",
+                                 f"В контекст {url} не передано изображение")
+
+        response = self.guest_client.get(urls[-1])
+        self.assertEqual(response.context.get("post").image,
+                         "posts/small.gif",
+                         "В контекст отдельного поста не передано изображение")
