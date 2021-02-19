@@ -49,3 +49,19 @@ class Group(models.Model):
     def __str__(self):
         """ Выводим поле title"""
         return self.title
+
+
+class Comment(models.Model):
+    """ Описание модели комментария """
+    post = models.ForeignKey("Post", on_delete=models.CASCADE,
+                             related_name="comments")
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name="comment",
+                               verbose_name="Автор комментария")
+
+    text = models.TextField(verbose_name="Текст",
+                            help_text="Содержимое поста")
+
+    created = models.DateTimeField(verbose_name="Дата комментария",
+                                   auto_now_add=True)

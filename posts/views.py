@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import (get_list_or_404, get_object_or_404, redirect,
+                              render)
 from django.urls import reverse_lazy
 from django.utils import timezone
 
-from .forms import PostForm
-from .models import Group, Post
+from .forms import CommentForm, PostForm
+from .models import Comment, Group, Post
 
 
 def get_page(request, object_list):
@@ -19,10 +20,13 @@ def get_page(request, object_list):
 def get_profile_data_dict(username, add_context=None):
     """ Возвращает словарь с данными профиля и объектом пользователя """
     user = get_object_or_404(get_user_model(), username=username)
-    return {
+    context = {
         "username": user,
         "posts_count": Post.objects.filter(author=user).count()
-    }
+               }
+    if add_context:
+        context.update(add_context)
+    return context
 
 
 def index(request):
@@ -49,7 +53,7 @@ def group_posts(request, slug=None):
 
 def show_groups(request):
     """ Показывает страницу со списком всех сообществ """
-    groups = Group.objects.all()[:10]
+    groups = get_list_or_404(Group)
     return render(request, "show_groups.html", {"groups": groups})
 
 
@@ -70,8 +74,26 @@ def view_post(request, username, post_id):
     context = get_profile_data_dict(username)
     post = get_object_or_404(Post, id=post_id,
                              author__username=context["username"])
-    context.update({"post": post, "post_id": post_id})
+    comments = Comment.objects.filter(post=post_id)
+    # Так не работает, потому что может не быть комментариев, тогда придет 404
+    # comments = get_list_or_404(Comment, post=post_id)
+    form = CommentForm()
+    context.update({"post": post, "post_id": post_id,
+                    "comments": comments, "form": form})
     return render(request, "post.html", context)
+
+
+@login_required
+def add_comment(request, username, post_id):
+    form = CommentForm(request.POST or None)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = get_object_or_404(get_user_model(),
+                                           username=request.user)
+        comment.post = get_object_or_404(Post, id=post_id)
+        comment.save()
+    return redirect("posts:post", username, post_id)
 
 
 @login_required

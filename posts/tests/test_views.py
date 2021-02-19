@@ -1,16 +1,16 @@
-from time import sleep
 import shutil
 import tempfile
+from time import sleep
 
-from django.conf import settings
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.paginator import Page
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Comment, Group, Post
 
 
 class StaticURLTests(TestCase):
@@ -19,6 +19,7 @@ class StaticURLTests(TestCase):
         super().setUpClass()
         # наш тестовый пользователь
         cls.user_one = get_user_model().objects.create(username="johndoe")
+        cls.user_two = get_user_model().objects.create(username="mrsecond")
         cls.posts_per_page = 10
         # Создаем группу и сразу запомним ссылку для поста
         group_link = Group.objects.create(
@@ -48,7 +49,7 @@ class StaticURLTests(TestCase):
         # Создаем несколько постов от пользователя в группу и без группы
         # Посты для новых тестов создавать осторожно, т.к. учитывается их
         # порядок и расположение на страницах паджинатора
-        Post.objects.create(
+        first_post = Post.objects.create(
             author=cls.user_one,
             text="Запись в сообществе Авиаторы",
             group=group_link,
@@ -69,6 +70,16 @@ class StaticURLTests(TestCase):
                 text=f"{number} запись",
                 group=None)
             sleep(.01)
+        Comment.objects.create(
+            author=cls.user_one,
+            post=first_post,
+            text=f"Первый комментарий! {cls.user_one}"
+        )
+        Comment.objects.create(
+            author=cls.user_two,
+            post=first_post,
+            text=f"Второй комментарий! {cls.user_two}"
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -227,3 +238,15 @@ class StaticURLTests(TestCase):
         self.assertEqual(response.context.get("post").image,
                          "posts/small.gif",
                          "В контекст отдельного поста не передано изображение")
+
+    def test_comment_added(self):
+        """ Комментарии добавлены от соответствующих пользователей """
+        comment_url = reverse("posts:post",
+                              kwargs={"username": "johndoe",
+                                      "post_id": "1"})
+        response = self.guest_client.get(comment_url)
+        comments = ("Первый комментарий! johndoe",
+                    "Второй комментарий! mrsecond")
+        for i, test_comment in enumerate(response.context.get("comments")):
+            with self.subTest(value=comments[i]):
+                self.assertEqual(test_comment.text, comments[i])
