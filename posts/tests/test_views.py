@@ -5,6 +5,7 @@ from time import sleep
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.paginator import Page
 from django.test import Client, TestCase
@@ -250,3 +251,22 @@ class StaticURLTests(TestCase):
         for i, test_comment in enumerate(response.context.get("comments")):
             with self.subTest(value=comments[i]):
                 self.assertEqual(test_comment.text, comments[i])
+
+    def test_index_cached(self):
+        """ Стартовая страница не изменяется в течеиние 20 с """
+        response_one = self.guest_client.get(reverse("posts:index"))
+
+        Post.objects.create(
+            author=StaticURLTests.user_one,
+            text="Текст не попал в кэш",
+            group=None
+        )
+
+        response_two = self.guest_client.get(reverse("posts:index"))
+        cache.clear()
+        response_three = self.guest_client.get(reverse("posts:index"))
+
+        self.assertEqual(response_one.content, response_two.content,
+                         "Контексты отличаются - не работает кэш")
+        self.assertNotEqual(response_one.content, response_three.content,
+                            "после сброса контексты одинаковые")
