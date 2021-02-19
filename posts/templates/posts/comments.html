@@ -6,12 +6,14 @@
     <form method="post" action="{% url 'posts:add_comment' username post_id %}">
         {% csrf_token %}
         <h5 class="card-header">Добавить комментарий:</h5>
-        <div class="card-body">
+        <div class="card-body text-center">
             <div class="form-group">
                 {{ form.text|addclass:"form-control" }}
             </div>
-            <button type="submit" class="btn btn-primary">Отправить</button>
-            <a href="javascript:history.back()" name="Назад" class="btn btn-light">Назад</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Отправить</button>
+                <a href="javascript:history.back()" name="Назад" class="btn btn-light">Назад</a>
+            </div>
         </div>
     </form>
 </div>
@@ -26,7 +28,7 @@
                name="comment_{{ item.id }}">
                 @{{ item.author.username }} 
             </a>
-            <small class="text-muted">({{ item.created | date:"D d E Y" }})</small>
+            <small class="text-muted">({{ item.created | date:"d.m.Y" }})</small>
         </h5>
 
         <p>{{ item.text | linebreaksbr }}</p>
