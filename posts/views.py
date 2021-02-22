@@ -24,7 +24,7 @@ def view_follow_index(request):
     """ Вывод ленты подписок пользователя """
     # собираем все подписки пользователя
     authors = follow_authors_context(request)
-    posts = Post.objects.filter(author__in=authors)
+    posts = Post.objects.prefetch_related("author").filter(author__in=authors)
 
     page, paginator = get_page(request, posts)
     context = {"page": page, "paginator": paginator, "follow_index": True,
@@ -93,7 +93,8 @@ def get_profile_data_dict(username, add_context=None):
 
 def index(request):
     """ Вывод последних 10 постов из базы """
-    post_list = Post.objects.all()
+    # post_list = Post.objects.all()
+    post_list = Post.objects.prefetch_related("author").all()
     page, paginator = get_page(request, post_list)
     context = {"page": page, "paginator": paginator}
 
@@ -106,7 +107,7 @@ def group_posts(request, slug=None):
     # Получаем объект из базы соответствующий slug
     group = get_object_or_404(Group, slug=slug)
     # Получаем все посты принадлежащие slug через related_name
-    posts = group.posts.all()
+    posts = group.posts.prefetch_related("author").all()
     page, paginator = get_page(request, posts)
     # передаем paginator в контекст чтобы пройти тест
     context = {"group": group, "page": page, "paginator": paginator,
@@ -125,7 +126,7 @@ def profile(request, username):
     """ Выводит профиль пользователя и его посты """
     # цепляем данные профиля
     context = get_profile_data_dict(username)
-    posts = context["username"].posts.all()
+    posts = context["username"].posts.prefetch_related("author").all()
     page, paginator = get_page(request, posts)  # костыль paginator для тестов
     author = get_object_or_404(get_user_model(), username=username)
     # подписан ли текущий пользователь на того что в профиле
