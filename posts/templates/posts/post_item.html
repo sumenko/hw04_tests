@@ -1,6 +1,6 @@
 <div class="card mb-3 mt-1 shadow-sm">
-    
     <!-- Отображение картинки -->
+    <a id="{{ post.id }}"></a>
     {% load thumbnail %}
     {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
     <img class="card-img" src="{{ im.url }}" />
@@ -9,9 +9,20 @@
     <div class="card-body">
       <p class="card-text">
         <!-- Ссылка на автора через @ -->
+        <div class="btn-group">
         <a name="post_{{ post.id }}" href="{% url 'posts:profile' post.author.username %}">
           <strong class="d-block text-gray-dark">@{{ post.author }}</strong>
         </a>
+        {# Если following не передан, значит кнопка подписаться не покажется (страница профиля) #}
+        {% if user != post.author and following is None %}
+            {% if not post.author.id in authors %}
+              <a href="{% url 'posts:profile_follow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[подписаться]</a>
+            {% else %}
+              <a href="{% url 'posts:profile_unfollow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[отписаться]</a>
+            {% endif %}
+        {% endif %}
+      </div>
+      <br>
         {{ post.text|linebreaksbr }}
       </p>
   
@@ -42,9 +53,7 @@
           <!-- Ссылка на редактирование поста для автора -->
           <div class="btn-group">
             {% if user == post.author %}
-            <a class="btn btn-sm btn-link" href="{% url 'posts:edit_post' post.author.username post.id %}" role="button">
-              Редактировать
-            </a>
+            <a class="btn btn-sm btn-link" href="{% url 'posts:edit_post' post.author.username post.id %}" role="button">Редактировать</a>
             {% endif %}
             <!-- Дата публикации поста -->
             <button class="btn btn-sm" role="button" disabled>

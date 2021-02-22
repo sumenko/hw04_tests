@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Последние обновления на сайте{% endblock %}
-{% block header %}Последние обновления на сайте{% endblock %}
+{% block title %}Последние записи автора @{{ user.username }}{% endblock %}
+{% block header %}Последние записи автора @{{ user.username }}{% endblock %}
 {% block content %}
 {% load thumbnail %}
 <main role="main" class="container">
@@ -17,6 +17,9 @@
                         @{{ username }}
                     </div>
                 </div>
+                {% if username != user %}
+                    <div class="text-center">{% include 'follow_button.html' %}</div>
+                {% endif %}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div class="h6 text-muted">

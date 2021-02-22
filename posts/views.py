@@ -7,7 +7,69 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 
 from .forms import CommentForm, PostForm
-from .models import Comment, Group, Post
+from .models import Comment, Follow, Group, Post
+
+
+def follow_authors_context(request):
+    """ передает список подписки на авторов для оформления кнопок """
+    if not request.user.is_authenticated:
+        return None
+    links = Follow.objects.filter(user=request.user)
+    authors = [link.author.id for link in links]
+    return authors
+
+
+@login_required
+def view_follow_index(request):
+    """ Вывод ленты подписок пользователя """
+    # собираем все подписки пользователя
+    authors = follow_authors_context(request)
+    posts = Post.objects.filter(author__in=authors)
+
+    page, paginator = get_page(request, posts)
+    context = {"page": page, "paginator": paginator, "follow_index": True,
+               "username": request.user, "authors": authors}
+
+    return render(request, "index.html", context)
+
+
+@login_required
+def profile_follow(request, username):
+    """ подписывает текущего пользователя на автора """
+    if username == request.user.username:
+        # TODO заменить
+        return redirect("posts:index")
+    user = get_object_or_404(get_user_model(), username=request.user)
+    author = get_object_or_404(get_user_model(), username=username)
+    count = Follow.objects.filter(user=user, author=author).count()
+
+    if not count:
+        Follow.objects.create(user=user, author=author)
+    # TODO: проверить, что редирект с нашего сайта
+    redirect_link = request.GET.get("next")
+    # вернем пользователя туда откуда пришёл
+    if redirect_link:
+        return redirect(redirect_link)
+    else:
+        return redirect("/")
+
+
+@login_required
+def profile_unfollow(request, username):
+    """ отписывает текущего пользователя на автора """
+    user = get_object_or_404(get_user_model(), username=request.user)
+    author = get_object_or_404(get_user_model(), username=username)
+
+    count = Follow.objects.filter(user=user, author=author).count()
+
+    if count:
+        Follow.objects.get(user=user, author=author).delete()
+
+    redirect_link = request.GET.get("next")
+    if redirect_link:
+        return redirect(redirect_link)
+    else:
+        return redirect("/")
 
 
 def get_page(request, object_list):
@@ -22,7 +84,7 @@ def get_profile_data_dict(username, add_context=None):
     user = get_object_or_404(get_user_model(), username=username)
     context = {
         "username": user,
-        "posts_count": Post.objects.filter(author=user).count()
+        "posts_count": Post.objects.filter(author=user).count(),
                }
     if add_context:
         context.update(add_context)
@@ -34,6 +96,9 @@ def index(request):
     post_list = Post.objects.all()
     page, paginator = get_page(request, post_list)
     context = {"page": page, "paginator": paginator}
+
+    authors = follow_authors_context(request)
+    context.update({"authors": authors})
     return render(request, "index.html", context)
 
 
@@ -43,12 +108,11 @@ def group_posts(request, slug=None):
     # Получаем все посты принадлежащие slug через related_name
     posts = group.posts.all()
     page, paginator = get_page(request, posts)
-    return render(request,
-                  "group.html",
-                  {"group": group, "page": page,
-                   # передаем paginator в контекст чтобы пройти тест
-                   "paginator": paginator}
-                  )
+    # передаем paginator в контекст чтобы пройти тест
+    context = {"group": group, "page": page, "paginator": paginator,
+               "authors": follow_authors_context(request)}
+
+    return render(request, "group.html", context)
 
 
 def show_groups(request):
@@ -63,7 +127,15 @@ def profile(request, username):
     context = get_profile_data_dict(username)
     posts = context["username"].posts.all()
     page, paginator = get_page(request, posts)  # костыль paginator для тестов
-    context.update({"page": page, "paginator": paginator})
+    author = get_object_or_404(get_user_model(), username=username)
+    # подписан ли текущий пользователь на того что в профиле
+    follow = False
+    if (request.user.is_authenticated and
+       Follow.objects.filter(user=request.user, author=author).exists()):
+        follow = True
+    # count = Follow.objects.filter(user=request.user, author=author).count()
+    # follow = True if count else False
+    context.update({"page": page, "paginator": paginator, "following": follow})
 
     # обязательно отдаем username, на случай если нет постов
     return render(request, "profile.html", context)

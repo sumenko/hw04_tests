@@ -140,3 +140,19 @@ class StaticURLTests(TestCase):
             with self.subTest():
                 response = self.guest_client.get(url)
                 self.assertTemplateUsed(response, template)
+
+    # def test_follow(self):
+    #     """ Проверка: подписок нет, подписка уже есть, подписка на себя """
+    #     url_follow = reverse("posts:follow", kwargs={"username": "johndoe"})
+    #     print(f"Попытка 1 {url_follow}")
+    #     response = self.authorized_client.get(url_follow)
+    #     count_follows = Follow.objects.all().count()
+    #     print(count_follows)
+    #     print(response.status_code)
+    #     print("Попытка 2")
+    #     response = self.authorized_client.get(url_follow)
+    #     print(response.status_code)
+    #     count_follows = Follow.objects.all().count()
+    #     print(count_follows)
+    #     for o in Follow.objects.all():
+    #         print(":", o)

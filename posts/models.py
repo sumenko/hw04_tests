@@ -65,3 +65,18 @@ class Comment(models.Model):
 
     created = models.DateTimeField(verbose_name="Дата комментария",
                                    auto_now_add=True)
+
+
+class Follow(models.Model):
+    """ Модель для хранения подписок я - user подписываюсь на author """
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name="follower")
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name="following")
+    # TODO выдает ошибки
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(fields=["user", "author"],
+    #                                 name="follow-constraint")
+    #     ]
