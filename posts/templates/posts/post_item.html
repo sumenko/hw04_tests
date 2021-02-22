@@ -14,24 +14,25 @@
           <strong class="d-block text-gray-dark">@{{ post.author }}</strong>
         </a>
         {# Если following не передан, значит кнопка подписаться не покажется (страница профиля) #}
-        {% if user != post.author and following is None %}
+        {% if user != post.author and following_this_author is None %}
             {% if not post.author.id in authors %}
-              <a href="{% url 'posts:profile_follow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[подписаться]</a>
+            <a href="{% url 'posts:profile_follow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[подписаться]</a>
             {% else %}
-              <a href="{% url 'posts:profile_unfollow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[отписаться]</a>
+            <a href="{% url 'posts:profile_unfollow' post.author.username %}?next={{ request.path }}#{{ post.id }}" role="button">[отписаться]</a>
             {% endif %}
         {% endif %}
       </div>
       <br>
-        {{ post.text|linebreaksbr }}
-      </p>
-  
+      {{ post.text|linebreaksbr }}
+    </p>
+    <div class="text-left">
       <!-- Если пост относится к какому-нибудь сообществу, то отобразим ссылку на него через # -->
       {% if post.group %}
       <a class="card-link muted" href="{% url 'posts:group_slug' post.group.slug %}">
         <strong class="d-block text-gray-dark">#{{ post.group.title }}</strong>
       </a>
       {% endif %}
+    </div>
   
       <!-- Отображение ссылки на комментарии -->
       <div class="d-flex justify-content-between align-items-center">

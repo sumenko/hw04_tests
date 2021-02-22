@@ -23,14 +23,40 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div class="h6 text-muted">
-                            Подписчиков: XXX <br />
-                            Подписан: XXX
+                            Подписчиков: {{ followers }} <br/>
+                            Подписан: {{ following }}
                         </div>
                     </li>
                     <li class="list-group-item">
                         <div class="h6 text-muted">
                             <!-- Количество записей -->
                             Записей: {{ posts_count }}
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="h6 text-muted">
+                            <!-- Подписчики -->
+                            Подписки:<br>
+                            {% if following_list %}
+                                {% for following_user in following_list %}
+                                <a href="{% url 'posts:profile' following_user.author %}">@{{ following_user.author }}</a><br>
+                                {% endfor %}
+                            {% else %}
+                                Нет подписок
+                            {% endif %}
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="h6 text-muted">
+                            <!-- Подписчики -->
+                            Подписчики:<br>
+                            {% if followers_list %}
+                                {% for follower_user in followers_list %}
+                                <a href="{% url 'posts:profile' follower_user.user %}">@{{ follower_user.user }}</a><br>
+                                {% endfor %}
+                            {% else %}
+                                нет подписчиков
+                            {% endif %}
                         </div>
                     </li>
                 </ul>

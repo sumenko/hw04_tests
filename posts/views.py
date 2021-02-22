@@ -130,13 +130,24 @@ def profile(request, username):
     page, paginator = get_page(request, posts)  # костыль paginator для тестов
     author = get_object_or_404(get_user_model(), username=username)
     # подписан ли текущий пользователь на того что в профиле
-    follow = False
-    if (request.user.is_authenticated and
-       Follow.objects.filter(user=request.user, author=author).exists()):
-        follow = True
-    # count = Follow.objects.filter(user=request.user, author=author).count()
-    # follow = True if count else False
-    context.update({"page": page, "paginator": paginator, "following": follow})
+    following = 0  # на скольких подписан
+    followers = 0  # сколько подписчиков
+    following_this_author = False
+    if request.user.is_authenticated:
+        if Follow.objects.filter(user=request.user, author=author).exists():
+            following_this_author = True
+    user = context["username"]
+    following = user.follower.count()
+    followers = user.following.count()
+    following_list = user.follower.all()  # на кого подписан
+    # followers_list = Follow.objects.filter(author=user)  # кто его читает
+    followers_list = user.following.all()  # кто его читает
+
+    context.update({"page": page, "paginator": paginator,
+                    "following": following, "followers": followers,
+                    "following_this_author": following_this_author,
+                    "following_list": following_list,
+                    "followers_list": followers_list})
 
     # обязательно отдаем username, на случай если нет постов
     return render(request, "profile.html", context)

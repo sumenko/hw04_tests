@@ -1,13 +1,11 @@
 <li class="list-group-item">
-    {% if following %}
+    {% if following_this_author %}
     <a class="btn btn-lg btn-light" 
             href="{% url 'posts:profile_unfollow' username %}?next={{ request.path }}#{{ post.id }}" role="button"> 
-            Отписаться 
-    </a> 
+                Отписаться</a> 
     {% else %}
     <a class="btn btn-lg btn-primary" 
             href="{% url 'posts:profile_follow' username %}?next={{ request.path }}#{{ post.id }}" role="button">
-    Подписаться 
-    </a>
+                Подписаться</a>
     {% endif %}
 </li>
