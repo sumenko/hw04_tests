@@ -10,8 +10,8 @@ class StaticURLTests(TestCase):
     def setUpClass(cls):  # вызывается перед запуском всех test case
         super().setUpClass()
         # наш тестовый пользователь
-        cls.user_one = get_user_model().objects.create(username="johndoe")
-        cls.user_two = get_user_model().objects.create(username="myst")
+        cls.johndoe = get_user_model().objects.create(username="johndoe")
+        cls.myst = get_user_model().objects.create(username="myst")
 
         # Создаем группу
         Group.objects.create(
@@ -20,19 +20,19 @@ class StaticURLTests(TestCase):
             description="Мы любим собирать самолёты",
         )
         Post.objects.create(text="Test text from johndoe",
-                            author=cls.user_one,
+                            author=cls.johndoe,
                             group=None)
         Post.objects.create(text="Test text from myst",
-                            author=cls.user_two,
+                            author=cls.myst,
                             group=None)
 
     def setUp(self):  # вызывается перед запуском каждого test case
         # фикстуры: готовим пользователей тут
         self.guest_client = Client()
 
-        self.user = get_user_model().objects.get(username="myst")
+        # self.user = get_user_model().objects.get(username="myst")
         self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.authorized_client.force_login(StaticURLTests.myst)
 
     def test_url_exists_homepage(self):
         # Делаем запрос к главной странице и проверяем статус
@@ -141,18 +141,27 @@ class StaticURLTests(TestCase):
                 response = self.guest_client.get(url)
                 self.assertTemplateUsed(response, template)
 
-    # def test_follow(self):
-    #     """ Проверка: подписок нет, подписка уже есть, подписка на себя """
-    #     url_follow = reverse("posts:follow", kwargs={"username": "johndoe"})
-    #     print(f"Попытка 1 {url_follow}")
-    #     response = self.authorized_client.get(url_follow)
-    #     count_follows = Follow.objects.all().count()
-    #     print(count_follows)
-    #     print(response.status_code)
-    #     print("Попытка 2")
-    #     response = self.authorized_client.get(url_follow)
-    #     print(response.status_code)
-    #     count_follows = Follow.objects.all().count()
-    #     print(count_follows)
-    #     for o in Follow.objects.all():
-    #         print(":", o)
+    # Авторизованный пользователь может подписываться на других пользователей
+    #  и удалять их из подписок
+    def test_unable_follow_twice(self):
+        """ Проверка: подписок нет, подписка уже есть, подписка на себя """
+        # подписываем myst на johndoe
+        url_follow = reverse("posts:profile_follow",
+                             kwargs={"username": "johndoe"})
+        count_follows_before = StaticURLTests.johndoe.following.count()
+        response = self.authorized_client.get(url_follow, follow=True)
+        self.assertEqual(response.status_code, 200,
+                         "При подписке не сработал редирект")
+        # сколько теперь у нашего johndoe подписчиков?
+        # памятка:
+        # StaticURLTests.johndoe.follower.count()) - кого читает john
+        # StaticURLTests.johndoe.following.count()) - кто читает john
+        count_follows_first = StaticURLTests.johndoe.following.count()
+        self.assertEqual(count_follows_first, count_follows_before + 1,
+                         "Количество подписчиков не увеличилось")
+        response = self.authorized_client.get(url_follow)
+        # количество подписчиков не должно измениться
+        self.assertEqual(response.status_code, 302)
+        count_follows_second = StaticURLTests.johndoe.following.count()
+        self.assertEqual(count_follows_first, count_follows_second,
+                         "Повторная подписка невозможна")

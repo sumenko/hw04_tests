@@ -3,7 +3,7 @@
 
 {% block content %}
 {% load cache %}
-{% cache 1 index_page page %}
+{% cache 20 index_page page %}
 <div class="container">
   <h3> {% if not follow_index %} Последние обновления на сайте {% else %} Лента пользователя @{{ username }} {% endif %}</h3>
             <!-- Вывод ленты записей -->

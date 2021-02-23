@@ -42,9 +42,8 @@ def profile_follow(request, username):
     user = get_object_or_404(get_user_model(), username=request.user)
     author = get_object_or_404(get_user_model(), username=username)
     count = Follow.objects.filter(user=user, author=author).count()
-
     if not count:
-        Follow.objects.create(user=user, author=author)
+        res = Follow.objects.create(user=user, author=author)
     # TODO: проверить, что редирект с нашего сайта
     redirect_link = request.GET.get("next")
     # вернем пользователя туда откуда пришёл
