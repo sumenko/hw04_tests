@@ -5,7 +5,7 @@ from django.urls import reverse
 from posts.models import Post
 
 
-class StaticURLTests(TestCase):
+class FollowTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -25,55 +25,71 @@ class StaticURLTests(TestCase):
                             group=None)
 
     def setUp(self):
-        self.guest_client = Client()
+        self.authorized_myst = Client()
+        self.authorized_myst.force_login(FollowTests.myst)
 
-        self.authorized_client = Client()
-        self.authorized_client.force_login(StaticURLTests.myst)
-    
+        self.authorized_john = Client()
+        self.authorized_john.force_login(FollowTests.johndoe)
+
     def test_follow_unfollow_test(self):
         """ Пользователи могут подписываться и отписываться друг от друга """
         pass
 
-    def test_follow_index(self):
-        """ пользователь видит в ленте тех на кого подписался """
-        # смотрим ленту до подписки
-        john_follow_index = reverse("posts:follow_index")
-        response = self.authorized_client.get(john_follow_index)
-        print(response.context.get["page"])
-        self.assertEqual(response.status_code, 200,
-                         "У пользователя без подписок не отобразилась страница"
-                        )
-        response = self.authorized_client.get(john_follow_myst_url)
-        john_follow_myst_url = reverse("posts:follow",
-                                       kwargs={"username": "myst"})
-        response = self.authorized_client.get(john_follow_myst_url)
-
-    def test_user_not_followed_index(self):
-        """ пользователь невидит в ленте тех на кого не подписался """
-        pass
-
     # Авторизованный пользователь может подписываться на других пользователей
     #  и удалять их из подписок
+    def test_follow_index(self):
+        """ пользователь видит в ленте тех на кого подписался """
+        # смотрим ленту до подписки john и myst
+        follow_index = reverse("posts:follow_index")
+        response_myst = self.authorized_myst.get(follow_index)
+        response_john = self.authorized_john.get(follow_index)
+        self.assertEqual(response_myst.status_code, 200)
+        self.assertEqual(response_john.status_code, 200)
+
+        self.assertEqual(response_myst.status_code, 200,
+                         "У myst без подписок не отобразилась страница"
+                         )
+        self.assertEqual(response_myst.status_code, 200,
+                         "У john без подписок не отобразилась страница"
+                         )
+        john_follow_myst_url = reverse("posts:profile_follow",
+                                       kwargs={"username": "myst"})
+        # подписывает john на myst
+        response_index = self.authorized_john.get(john_follow_myst_url,
+                                                  follow=True)
+        self.assertEqual(response_index.status_code, 200)
+        # проверяем что у myst появилось, у john нет
+        response_myst = self.authorized_myst.get(follow_index)
+        response_john = self.authorized_john.get(follow_index)
+        self.assertEqual(response_myst.status_code, 200,
+                         "Myst после подписки не смог получить страницу")
+        self.assertEqual(response_john.status_code, 200,
+                         "John после подписки myst не получил страницу")
+        self.assertIsInstance(response_john.context.get("page")[0], Post)
+        test_message = response_john.context.get("page")[0].text
+
+        self.assertEqual(test_message, "My name is Myst! Hello!",
+                         "Неверное сообщение в ленте по подписке")
+
     def test_unable_follow_twice(self):
         """ Проверка: подписок нет, подписка уже есть, подписка на себя """
         # подписываем myst на johndoe
         url_follow = reverse("posts:profile_follow",
                              kwargs={"username": "johndoe"})
-        count_follows_before = StaticURLTests.johndoe.following.count()
-        response = self.authorized_client.get(url_follow, follow=True)
+        count_follows_before = FollowTests.johndoe.following.count()
+        response = self.authorized_myst.get(url_follow, follow=True)
         self.assertEqual(response.status_code, 200,
                          "При подписке не сработал редирект")
         # сколько теперь у нашего johndoe подписчиков?
         # памятка:
-        # StaticURLTests.johndoe.follower.count()) - кого читает johndoe
-        # StaticURLTests.johndoe.following.count()) - подписчики johndoe
-        count_follows_first = StaticURLTests.johndoe.following.count()
+        # .johndoe.follower.count()) - кого читает johndoe
+        # .johndoe.following.count()) - подписчики johndoe
+        count_follows_first = FollowTests.johndoe.following.count()
         self.assertEqual(count_follows_first, count_follows_before + 1,
                          "Количество подписчиков не увеличилось")
-        response = self.authorized_client.get(url_follow, follow=True)
+        response = self.authorized_myst.get(url_follow, follow=True)
         # количество подписчиков не должно измениться
         self.assertEqual(response.status_code, 200)
-        count_follows_second = StaticURLTests.johndoe.following.count()
+        count_follows_second = FollowTests.johndoe.following.count()
         self.assertEqual(count_follows_first, count_follows_second,
                          "Повторная подписка невозможна")
-
