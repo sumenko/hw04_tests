@@ -43,7 +43,7 @@ def profile_follow(request, username):
     author = get_object_or_404(get_user_model(), username=username)
     count = Follow.objects.filter(user=user, author=author).count()
     if not count:
-        res = Follow.objects.create(user=user, author=author)
+        Follow.objects.create(user=user, author=author)
     # TODO: проверить, что редирект с нашего сайта
     redirect_link = request.GET.get("next")
     # вернем пользователя туда откуда пришёл
@@ -84,7 +84,7 @@ def get_profile_data_dict(username, add_context=None):
     context = {
         "username": user,
         "posts_count": Post.objects.filter(author=user).count(),
-               }
+    }
     if add_context:
         context.update(add_context)
     return context
@@ -92,7 +92,6 @@ def get_profile_data_dict(username, add_context=None):
 
 def index(request):
     """ Вывод последних 10 постов из базы """
-    # post_list = Post.objects.all()
     post_list = Post.objects.prefetch_related("author").all()
     page, paginator = get_page(request, post_list)
     context = {"page": page, "paginator": paginator}

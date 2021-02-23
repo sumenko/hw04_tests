@@ -219,9 +219,9 @@ class StaticURLTests(TestCase):
     def test_image_present_in_context(self):
         """ Изображение передается в контекст страниц """
         urls = [
-            reverse("posts:index")+"?page=2",
+            reverse("posts:index") + "?page=2",
             reverse("posts:profile",
-                    kwargs={"username": StaticURLTests.user_one})+"?page=2",
+                    kwargs={"username": StaticURLTests.user_one}) + "?page=2",
             reverse("posts:group_slug", kwargs={"slug": "aviators"}),
             reverse("posts:post",
                     kwargs={"username": StaticURLTests.user_one,
@@ -253,7 +253,7 @@ class StaticURLTests(TestCase):
                 self.assertEqual(test_comment.text, comments[i])
 
     def test_index_cached(self):
-        """ Стартовая страница не изменяется в течеиние 20 с """
+        """ Стартовая страница не изменяется в течении 20 с """
         response_one = self.guest_client.get(reverse("posts:index"))
 
         Post.objects.create(

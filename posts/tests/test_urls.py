@@ -140,28 +140,3 @@ class StaticURLTests(TestCase):
             with self.subTest():
                 response = self.guest_client.get(url)
                 self.assertTemplateUsed(response, template)
-
-    # Авторизованный пользователь может подписываться на других пользователей
-    #  и удалять их из подписок
-    def test_unable_follow_twice(self):
-        """ Проверка: подписок нет, подписка уже есть, подписка на себя """
-        # подписываем myst на johndoe
-        url_follow = reverse("posts:profile_follow",
-                             kwargs={"username": "johndoe"})
-        count_follows_before = StaticURLTests.johndoe.following.count()
-        response = self.authorized_client.get(url_follow, follow=True)
-        self.assertEqual(response.status_code, 200,
-                         "При подписке не сработал редирект")
-        # сколько теперь у нашего johndoe подписчиков?
-        # памятка:
-        # StaticURLTests.johndoe.follower.count()) - кого читает john
-        # StaticURLTests.johndoe.following.count()) - кто читает john
-        count_follows_first = StaticURLTests.johndoe.following.count()
-        self.assertEqual(count_follows_first, count_follows_before + 1,
-                         "Количество подписчиков не увеличилось")
-        response = self.authorized_client.get(url_follow)
-        # количество подписчиков не должно измениться
-        self.assertEqual(response.status_code, 302)
-        count_follows_second = StaticURLTests.johndoe.following.count()
-        self.assertEqual(count_follows_first, count_follows_second,
-                         "Повторная подписка невозможна")
