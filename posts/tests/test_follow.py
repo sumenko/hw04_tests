@@ -43,22 +43,19 @@ class FollowTests(TestCase):
         follow_index = reverse("posts:follow_index")
         response_myst = self.authorized_myst.get(follow_index)
         response_john = self.authorized_john.get(follow_index)
-        self.assertEqual(response_myst.status_code, 200)
-        self.assertEqual(response_john.status_code, 200)
 
         self.assertEqual(response_myst.status_code, 200,
-                         "У myst без подписок не отобразилась страница"
-                         )
-        self.assertEqual(response_myst.status_code, 200,
-                         "У john без подписок не отобразилась страница"
-                         )
+                         "У myst без подписок не отобразилась страница")
+        self.assertEqual(response_john.status_code, 200,
+                         "У john без подписок не отобразилась страница")
         john_follow_myst_url = reverse("posts:profile_follow",
                                        kwargs={"username": "myst"})
         # подписывает john на myst
         response_index = self.authorized_john.get(john_follow_myst_url,
                                                   follow=True)
-        self.assertEqual(response_index.status_code, 200)
-        # проверяем что у myst появилось, у john нет
+        self.assertEqual(response_index.status_code, 200,
+                         "Не удалось получить страницу после подписки")
+        # проверяем, что у myst появилось, у john нет
         response_myst = self.authorized_myst.get(follow_index)
         response_john = self.authorized_john.get(follow_index)
         self.assertEqual(response_myst.status_code, 200,
@@ -70,6 +67,20 @@ class FollowTests(TestCase):
 
         self.assertEqual(test_message, "My name is Myst! Hello!",
                          "Неверное сообщение в ленте по подписке")
+        # должен появиться список с автором в контексте страницы
+        self.assertEqual(response_john.context.get("authors"), [2],
+                         "Передался неверный список авторов")
+        # отписываем john от myst
+        john_unfollow_myst_url = reverse("posts:profile_unfollow",
+                                         kwargs={"username": "myst"})
+        response_index = self.authorized_john.get(john_unfollow_myst_url,
+                                                  follow=True)
+        self.assertEqual(response_john.status_code, 200,
+                         "У john без подписок не отобразилась страница")
+        response_john = self.authorized_john.get(follow_index)
+        # список авторов на которых подписан john должен стать пустым
+        self.assertEqual(response_john.context.get("authors"), [],
+                         "Передался не пустой список авторов")
 
     def test_unable_follow_twice(self):
         """ Проверка: подписок нет, подписка уже есть, подписка на себя """
